@@ -1,0 +1,173 @@
+
+### Все письма выводятся тестово в терминал. При регистрации, при подтверждении заказа.
+
+
+### Регистрация. В ответ получите токен, с помощью которого можно дальше чет делать. Запрос идет долговато
+POST http://localhost:8000/api/user/register/
+Content-Type: application/json
+
+{
+  "first_name": "das",
+  "last_name": "dsa",
+  "email": "td1@dsaaaaa.com",
+  "password": "12345678",
+  "type": "buyer",
+  "company": "ПримерКомпания",
+  "position": "инженер"
+}
+
+
+
+
+### Авторизация
+POST http://localhost:8000/api/user/login/
+Content-Type: application/json
+
+{
+  "email": "ivan@example.com",
+  "password": "12345678"
+}
+
+
+### Список всех товаров
+GET http://localhost:8000/api/products/
+# Authorization: Token 2c612ba3df377ce48aa67a06957e02decb8e4809
+
+###
+
+### Информация о товаре
+GET http://localhost:8000/api/products/1
+# Authorization: Token 2c612ba3df377ce48aa67a06957e02decb8e4809
+
+### Поиск по имени
+GET http://localhost:8000/api/products/?name=Смартфон
+###
+
+### По категории и магазину
+GET http://localhost:8000/api/products/?category=1&shop=1
+###
+
+### По цене от 100 до 1000
+GET http://localhost:8000/api/products/?price_min=100&price_max=1000
+
+### Сортировка по цене
+GET http://localhost:8000/api/products/?ordering=price
+###
+
+### Сортировка по убыванию + фильтр по имени
+GET http://localhost:8000/api/products/?ordering=-price&name=Смартфон
+###
+
+### Пагинация: 10 штук с 20-й позиции
+GET http://localhost:8000/api/products/?limit=10&offset=20
+
+
+### Просмотр корзины
+GET http://localhost:8000/api/cart/
+Authorization: Token 2c612ba3df377ce48aa67a06957e02decb8e4809
+
+###
+
+### Добавить товар в корзину
+POST http://localhost:8000/api/cart/add/
+Content-Type: application/json
+Authorization: Token 2c612ba3df377ce48aa67a06957e02decb8e4809
+
+{
+  "product_info": 8,
+  "quantity": 2
+}
+
+###
+
+### Удалить из корзины
+POST http://localhost:8000/api/cart/remove/
+Content-Type: application/json
+Authorization: Token 2c612ba3df377ce48aa67a06957e02decb8e4809
+
+{
+  "item_id": 3
+}
+
+### Обновление
+PATCH http://localhost:8000/api/products/1/
+Authorization: Token 541db640e067cff7d6e183fc252daf9ace5e92a2
+Content-Type: application/json
+
+{
+  "price": 12500,
+  "quantity": 3
+}
+
+###
+
+### Удаление
+DELETE http://localhost:8000/api/products/1/
+Authorization: Token 541db640e067cff7d6e183fc252daf9ace5e92a2
+
+###
+
+### Проверка отсутствия
+GET http://localhost:8000/api/products/1/
+
+
+### Получить список контактов
+GET http://localhost:8000/api/contacts/
+Authorization: Token 541db640e067cff7d6e183fc252daf9ace5e92a2
+
+###
+
+### Добавить контакт
+POST http://localhost:8000/api/contacts/add/
+Authorization: Token 2c612ba3df377ce48aa67a06957e02decb8e4809
+Content-Type: application/json
+
+{
+  "city": "Москва",
+  "street": "Тверская",
+  "house": "1",
+  "structure": "",
+  "building": "",
+  "apartment": "101",
+  "phone": "+7 999 123 4567"
+}
+
+###
+
+### Удалить контакт
+DELETE http://localhost:8000/api/contacts/2/
+Authorization: Token 541db640e067cff7d6e183fc252daf9ace5e92a2
+
+
+### Подтверждение заказа (с указанием contact_id)
+POST http://localhost:8000/api/order/confirm/
+Authorization: Token 2c612ba3df377ce48aa67a06957e02decb8e4809
+Content-Type: application/json
+
+{
+  "order_id": 3,
+  "contact_id": 5
+}
+
+###
+
+### Получение списка заказов
+GET http://localhost:8000/api/order/
+Authorization: Token 2c612ba3df377ce48aa67a06957e02decb8e4809
+
+###
+
+### Получение деталей заказа
+GET http://localhost:8000/api/order/1/
+Authorization: Token 2c612ba3df377ce48aa67a06957e02decb8e4809
+
+
+### Изменить статус заказа (только администратор может его менять)
+PATCH http://localhost:8000/api/order/3/status/
+Content-Type: application/json
+Authorization: Token 541db640e067cff7d6e183fc252daf9ace5e92a2
+
+{
+  "state": "confirmed"
+}
+
