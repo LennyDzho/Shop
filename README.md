@@ -43,10 +43,11 @@ pip install -r requirements.txt
 ```
 EMAIL_HOST=smtp.yandex.ru
 EMAIL_PORT=587
-EMAIL_HOST_USER=primer@yandex.ru
-EMAIL_HOST_PASSWORD=<пароль приложения>
+EMAIL_HOST_USER=example@yandex.ru
+EMAIL_HOST_PASSWORD=example_password
 EMAIL_USE_TLS=True
-DEFAULT_FROM_EMAIL=primer@yandex.ru
+DEFAULT_FROM_EMAIL=example@yandex.ru
+SECRET_KEY=your-very-secret-key
 ```
 
 ---
