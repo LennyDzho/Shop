@@ -6,11 +6,17 @@ from rest_framework.permissions import AllowAny
 from shop.serializers import RegisterSerializer, LoginSerializer
 from django.core.mail import send_mail
 from django.conf import settings
+from rest_framework.request import Request
 
 class RegisterView(APIView):
+    """
+    Регистрация нового пользователя.
+
+    При успешной регистрации создаётся токен и отправляется письмо на указанный email.
+    """
     permission_classes = [AllowAny]
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -30,8 +36,14 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
+    """
+    Авторизация пользователя по email и паролю.
+
+    Возвращает токен доступа.
+    """
     permission_classes = [AllowAny]
-    def post(self, request):
+
+    def post(self, request: Request) -> Response:
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data

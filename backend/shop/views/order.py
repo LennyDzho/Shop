@@ -5,11 +5,17 @@ from rest_framework.permissions import IsAuthenticated
 from shop.models import Order, Contact
 from shop.serializers import OrderSerializer
 from shop.utils.email import send_order_confirmation_email
+from rest_framework.request import Request
+
 
 class OrderConfirmView(APIView):
+    """
+    Подтверждает заказ пользователя, переводя его из состояния 'basket' в 'confirmed',
+    присваивает контакт (адрес доставки) и отправляет email-уведомление.
+    """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         order_id = request.data.get('order_id')
         contact_id = request.data.get('contact_id')
 
@@ -36,9 +42,12 @@ class OrderConfirmView(APIView):
         return Response({'status': 'order confirmed and email sent'}, status=status.HTTP_200_OK)
 
 class OrderListView(APIView):
+    """
+    Возвращает список заказов текущего пользователя, исключая заказы в состоянии 'basket'.
+    """
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         orders = Order.objects.filter(user=request.user).exclude(state='basket')\
             .prefetch_related('ordered_items__product_info__product', 'ordered_items__product_info__shop')
         serializer = OrderSerializer(orders, many=True)
@@ -46,9 +55,12 @@ class OrderListView(APIView):
 
 
 class OrderDetailView(APIView):
+    """
+    Возвращает подробную информацию о конкретном заказе пользователя по его id.
+    """
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk):
+    def get(self, request: Request, pk: int) -> Response:
         try:
             order = Order.objects.prefetch_related('ordered_items__product_info__product', 'ordered_items__product_info__shop')\
                 .get(pk=pk, user=request.user)
@@ -59,9 +71,12 @@ class OrderDetailView(APIView):
         return Response(serializer.data)
 
 class OrderStatusUpdateView(APIView):
+    """
+    Позволяет администратору изменить статус заказа.
+    """
     permission_classes = [IsAuthenticated]
 
-    def patch(self, request, pk):
+    def patch(self, request: Request, pk: int) -> Response:
         # Проверка, что пользователь — администратор
         if not request.user.is_staff:
             return Response({"error": "Only admin can change order status"}, status=status.HTTP_403_FORBIDDEN)

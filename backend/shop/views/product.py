@@ -3,18 +3,25 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.db.models import Q
-
+from rest_framework.request import Request
 from shop.models import ProductInfo
 from shop.serializers import ProductInfoSerializer
 from rest_framework.exceptions import PermissionDenied
 
 class ProductListView(APIView):
+    """
+    Представление для получения списка товаров или информации об одном товаре,
+    а также для редактирования и удаления товара владельцем магазина.
+    """
     def get_permissions(self):
         if self.request.method in ['PATCH', 'DELETE']:
             return [IsAuthenticated()]
         return [AllowAny()]
 
-    def get_object(self, pk, user):
+    def get_object(self, pk: int, user) -> ProductInfo | None:
+        """
+        Получает объект товара, проверяет, принадлежит ли он текущему пользователю.
+        """
         try:
             product = ProductInfo.objects.select_related('shop').get(pk=pk)
             if product.shop.user != user:
@@ -23,7 +30,7 @@ class ProductListView(APIView):
         except ProductInfo.DoesNotExist:
             return None
 
-    def get(self, request, pk=None):
+    def get(self, request: Request, pk: int = None) -> Response:
         if pk:
             try:
                 product = ProductInfo.objects.select_related('product', 'shop') \
@@ -72,7 +79,10 @@ class ProductListView(APIView):
             'results': serializer.data
         })
 
-    def patch(self, request, pk):
+    def patch(self, request: Request, pk: int) -> Response:
+        """
+        Обновление информации о товаре. Только для владельца товара.
+        """
         product = self.get_object(pk, request.user)
         if not product:
             return Response({'error': 'Not found or forbidden'}, status=status.HTTP_403_FORBIDDEN)
@@ -83,8 +93,10 @@ class ProductListView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
-
+    def delete(self, request: Request, pk: int) -> Response:
+        """
+        Удаление товара. Только для владельца товара.
+        """
         product = self.get_object(pk, request.user)
         if not product:
             return Response({'error': 'Not found or forbidden', "request": request, "pk": pk}, status=status.HTTP_403_FORBIDDEN)
@@ -94,8 +106,15 @@ class ProductListView(APIView):
 
 
 class ProductDetailView(APIView):
+    """
+    Отдельное представление для получения детальной информации о товаре.
+    """
     permission_classes = [AllowAny]
-    def get(self, request, pk):
+
+    def get(self, request: Request, pk: int) -> Response:
+        """
+        Возвращает подробную информацию о товаре по ID.
+        """
         try:
             product = ProductInfo.objects.select_related('product', 'shop').prefetch_related('product_parameters__parameter').get(pk=pk)
         except ProductInfo.DoesNotExist:
