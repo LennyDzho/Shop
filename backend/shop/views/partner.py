@@ -7,17 +7,28 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
+from django.http import HttpRequest
+from typing import Any
 
 class PartnerUpdate(APIView):
     """
-    Поставщик загружает прайс в формате YAML (файл напрямую)
+    API для загрузки поставщиком прайс-листа в формате YAML.
+    Только пользователи с типом 'shop' имеют доступ.
     """
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> Response:
+        """
+         Обработка POST-запроса с YAML-файлом:
+         - Проверка авторизации и типа пользователя
+         - Валидация структуры YAML
+         - Очистка и обновление товаров магазина
+         - Сохранение параметров товаров
+
+         Возвращает JSON с ключом `Status` (True/False) и сообщением об ошибке, если есть.
+         """
         if request.user.type != 'shop':
             return Response({'Status': False, 'Error': 'Only for shops'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -82,17 +93,19 @@ class PartnerUpdate(APIView):
 
             parameters = item['parameters']
             if not isinstance(parameters, dict):
-                return Response({'Status': False, 'Error': f'parameters must be dict in item: {item}'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'Status': False, 'Error': f'parameters must be dict in item: {item}'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
             for name, value in parameters.items():
-                if not isinstance(name, str) or not isinstance(value, str):
-                    return Response({'Status': False, 'Error': f'Invalid parameter format: {name}: {value}'}, status=status.HTTP_400_BAD_REQUEST)
+                if not isinstance(name, str):
+                    return Response({'Status': False, 'Error': f'Invalid parameter name: {name}'},
+                                    status=status.HTTP_400_BAD_REQUEST)
 
                 param, _ = Parameter.objects.get_or_create(name=name)
                 ProductParameter.objects.create(
                     product_info=product_info,
                     parameter=param,
-                    value=value
+                    value=str(value)
                 )
 
         return Response({'Status': True}, status=status.HTTP_200_OK)
